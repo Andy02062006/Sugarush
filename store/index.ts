@@ -1,0 +1,68 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { UserProfile, GlucoseLog, Badge, MOCK_LOGS, MOCK_BADGES } from '../lib/mocks';
+
+interface AppState {
+  // USER slice
+  profile: UserProfile | null;
+  isLoggedIn: boolean;
+  setUser: (user: UserProfile) => void;
+  logout: () => void;
+  
+  // GLUCOSE slice
+  currentReading: number;
+  logs: GlucoseLog[];
+  addLog: (log: Omit<GlucoseLog, 'id'>) => void;
+  deleteLog: (id: string) => void;
+  
+  // GAMIFICATION slice
+  xp: number;
+  streak: number;
+  badges: Badge[];
+  addXP: (amount: number) => void;
+  unlockBadge: (badgeId: string) => void;
+}
+
+export const useStore = create<AppState>()(
+  persist(
+    (set) => ({
+      // USER slice
+      profile: null,
+      isLoggedIn: false,
+      setUser: (user) => set({ profile: user, isLoggedIn: true }),
+      logout: () => set({ profile: null, isLoggedIn: false, logs: [], xp: 0, streak: 0 }),
+      
+      // GLUCOSE slice
+      currentReading: MOCK_LOGS[0]?.value || 0,
+      logs: MOCK_LOGS,
+      addLog: (logData) => set((state) => {
+        const newLog: GlucoseLog = {
+          ...logData,
+          id: Date.now().toString(),
+        };
+        return {
+          logs: [newLog, ...state.logs],
+          currentReading: newLog.value,
+        };
+      }),
+      deleteLog: (id) => set((state) => ({
+        logs: state.logs.filter(log => log.id !== id)
+      })),
+      
+      // GAMIFICATION slice
+      xp: 850,
+      streak: 7,
+      badges: MOCK_BADGES,
+      addXP: (amount) => set((state) => ({ xp: state.xp + amount })),
+      unlockBadge: (badgeId) => set((state) => {
+        const updatedBadges = state.badges.map(b => 
+          b.id === badgeId ? { ...b, unlockedAt: new Date().toISOString() } : b
+        );
+        return { badges: updatedBadges };
+      }),
+    }),
+    {
+      name: 'sugarush-storage',
+    }
+  )
+);

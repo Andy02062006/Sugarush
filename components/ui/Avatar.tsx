@@ -1,0 +1,35 @@
+import React from 'react';
+import { cn } from '../../lib/utils';
+import Image from 'next/image';
+
+interface AvatarProps {
+  src?: string;
+  fallback: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
+}
+
+export function Avatar({ src, fallback, size = 'md', className }: AvatarProps) {
+  const sizeMap = {
+    sm: 'w-8 h-8 text-xs',
+    md: 'w-10 h-10 text-sm',
+    lg: 'w-14 h-14 text-lg',
+    xl: 'w-24 h-24 text-2xl',
+  };
+
+  return (
+    <div
+      className={cn(
+        "relative inline-flex items-center justify-center rounded-full bg-slate-200 overflow-hidden font-semibold text-slate-600 shrink-0",
+        sizeMap[size],
+        className
+      )}
+    >
+      {src ? (
+        <Image src={src} alt={fallback} fill className="object-cover" />
+      ) : (
+        <span>{fallback.substring(0, 2).toUpperCase()}</span>
+      )}
+    </div>
+  );
+}
