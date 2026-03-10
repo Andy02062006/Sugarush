@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { UserProfile, GlucoseLog, Badge, MOCK_LOGS, MOCK_BADGES } from '../lib/mocks';
+import { UserProfile, GlucoseLog, Badge, MealLog, MOCK_LOGS, MOCK_BADGES, MOCK_MEAL_LOGS } from '../lib/mocks';
 
 interface AppState {
   // USER slice
@@ -21,6 +21,11 @@ interface AppState {
   badges: Badge[];
   addXP: (amount: number) => void;
   unlockBadge: (badgeId: string) => void;
+
+  // MEAL slice
+  mealLogs: MealLog[];
+  addMealLog: (log: Omit<MealLog, 'id'>) => void;
+  deleteMealLog: (id: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -60,6 +65,19 @@ export const useStore = create<AppState>()(
         );
         return { badges: updatedBadges };
       }),
+
+      // MEAL slice
+      mealLogs: MOCK_MEAL_LOGS,
+      addMealLog: (logData) => set((state) => {
+        const newLog: MealLog = {
+          ...logData,
+          id: `ml-${Date.now()}`,
+        };
+        return { mealLogs: [newLog, ...state.mealLogs] };
+      }),
+      deleteMealLog: (id) => set((state) => ({
+        mealLogs: state.mealLogs.filter(m => m.id !== id),
+      })),
     }),
     {
       name: 'sugarush-storage',

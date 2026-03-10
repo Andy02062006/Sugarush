@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ScrollText, AlertTriangle, Utensils, MessageCircle, Phone, LogOut } from 'lucide-react';
+import { LayoutDashboard, ScrollText, AlertTriangle, Utensils, MessageCircle, Phone, LogOut, Salad } from 'lucide-react';
 import { useStore } from '../../store';
 import { cn } from '../../lib/utils';
 import { Avatar } from '../ui/Avatar';
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/glucose', icon: ScrollText, label: 'Glucose' },
   { href: '/risk', icon: AlertTriangle, label: 'Risk' },
+  { href: '/food', icon: Salad, label: 'Food IQ' },
   { href: '/recipes', icon: Utensils, label: 'Recipes' },
   { href: '/chat', icon: MessageCircle, label: 'RushBuddy AI' },
 ];
