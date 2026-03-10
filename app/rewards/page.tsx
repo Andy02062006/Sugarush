@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../../components/ui/Card';
-import { useStore } from '../../store';
+import { useStore } from '../../store'; // We keep this strictly to read badges configuration, not XP
 import { MOCK_REWARDS, Reward } from '../../lib/mocks';
 import { 
   Trophy, Flame, Gift, Star, ChevronRight, 
@@ -11,6 +11,7 @@ import {
   Lock, ShoppingCart, Pill, PhoneCall
 } from 'lucide-react';
 import Confetti from 'react-dom-confetti';
+import { GamificationState } from './api/db';
 
 const ICONS = {
   Pill: Pill,
@@ -25,24 +26,69 @@ const ICONS = {
 };
 
 export default function RewardsScreen() {
-  const { xp, streak, badges, redeemedRewards, redeemReward } = useStore();
+  const { badges } = useStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'rewards'>('overview');
+  
+  // Localized API State
+  const [gameState, setGameState] = useState<GamificationState | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Confetti state
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Fetch gamification profile securely from local API
+  useEffect(() => {
+    fetch('/rewards/api')
+      .then(res => res.json())
+      .then(data => {
+        setGameState(data);
+        setIsLoading(false);
+      })
+      .catch(e => {
+        console.error("Failed to fetch gamification state:", e);
+        setIsLoading(false);
+      });
+  }, []);
+
+  const xp = gameState?.xp || 0;
+  const streak = gameState?.streak || 0;
+  const redeemedRewards = gameState?.redeemedRewards || [];
 
   const level = Math.floor(xp / 1000) + 1;
   const currentLevelXP = xp % 1000;
   const nextLevelXP = 1000;
   const progressPercent = Math.min((currentLevelXP / nextLevelXP) * 100, 100);
 
-  const handleRedeem = (reward: Reward) => {
-    if (xp >= reward.cost && !redeemedRewards.includes(reward.id)) {
-      redeemReward(reward.id, reward.cost);
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
+  const handleRedeem = async (reward: Reward) => {
+    try {
+      const res = await fetch('/rewards/api/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rewardId: reward.id })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setGameState(data.gamification);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      } else {
+        console.error("Redemption failed securely on backend");
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-8 flex items-center justify-center h-full min-h-[50vh]">
+         <div className="text-slate-400 font-bold uppercase tracking-widest text-[13px] animate-pulse flex items-center gap-2">
+            <Trophy size={16} /> Loading Gamification Profile...
+         </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500 overflow-x-hidden">
