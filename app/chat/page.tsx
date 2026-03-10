@@ -21,7 +21,7 @@ const QUICK_PROMPTS = [
 export default function ChatScreen() {
   const { currentReading, profile } = useStore();
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', sender: 'ai', text: `Hi ${profile?.name || 'there'}! I'm Suggy, your AI diabetes coach. Your last reading was ${currentReading} mg/dL. How can I help you today?` }
+    { id: '1', sender: 'ai', text: `Hi ${profile?.name || 'there'}! I'm RushBuddy, your AI diabetes coach. Your last reading was ${currentReading} mg/dL. How can I help you today?` }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -88,7 +88,7 @@ export default function ChatScreen() {
           <Bot size={20} />
         </div>
         <div>
-          <h1 className="font-bold text-slate-800 text-lg flex items-center gap-1">Suggy AI <Sparkles size={14} className="text-amber-500"/></h1>
+          <h1 className="font-bold text-slate-800 text-lg flex items-center gap-1">RushBuddy AI <Sparkles size={14} className="text-amber-500"/></h1>
           <p className="text-xs font-semibold text-green-500">● Online and ready to help</p>
         </div>
       </header>
@@ -128,7 +128,7 @@ export default function ChatScreen() {
               </div>
               <div className="bg-white border border-slate-100 rounded-[20px] rounded-tl-sm px-5 py-3.5 shadow-sm flex items-center gap-2 text-slate-400">
                 <Loader2 size={18} className="animate-spin" />
-                <span className="text-sm font-semibold">Suggy is thinking...</span>
+                <span className="text-sm font-semibold">RushBuddy is thinking...</span>
               </div>
             </motion.div>
           )}
