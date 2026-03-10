@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Utensils, Plus, X, AlertTriangle, CheckCircle, TrendingUp, History,
@@ -204,7 +204,23 @@ function WarningBanner({ warnings }: { warnings: FoodWarning[] }) {
 type Tab = 'log' | 'history' | 'insights';
 
 export default function FoodScreen() {
-  const { mealLogs, addMealLog, deleteMealLog, addXP, incrementStreak } = useStore();
+  const { addXP, incrementStreak } = useStore();
+  const [mealLogs, setMealLogs] = useState<MealLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch initial logs from backend
+  useEffect(() => {
+    fetch('/food/api')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setMealLogs(data);
+        setIsLoading(false);
+      })
+      .catch(e => {
+        console.error('Failed to fetch meal logs', e);
+        setIsLoading(false);
+      });
+  }, []);
 
   // Build the risk profile from all historical data
   const riskProfile = useMemo(() => buildFoodRiskProfile(mealLogs), [mealLogs]);
@@ -239,16 +255,16 @@ export default function FoodScreen() {
     setFoodList(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const handleSaveMeal = () => {
+  const handleSaveMeal = async () => {
     if (foodList.length === 0) return;
     
     const isFirstLogToday = mealLogs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString()).length === 0;
-    if (isFirstLogToday) incrementStreak();
 
     const before = parseInt(glucoseBefore) || undefined;
     const after = parseInt(glucoseAfter) || undefined;
     const spikeAmt = before && after ? Math.max(0, after - before) : undefined;
-    addMealLog({
+    
+    const newLogData = {
       timestamp: new Date().toISOString(),
       foods: foodList,
       notes: mealNotes || undefined,
@@ -256,15 +272,46 @@ export default function FoodScreen() {
       glucoseAfterMeal: after,
       spikeDetected: spikeAmt !== undefined ? spikeAmt >= 30 : undefined,
       spikeAmount: spikeAmt,
-    });
-    addXP(75);
-    // Reset
-    setFoodList([]);
-    setMealNotes('');
-    setGlucoseBefore('');
-    setGlucoseAfter('');
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    };
+
+    try {
+      const res = await fetch('/food/api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newLogData),
+      });
+
+      if (res.ok) {
+        const savedLog = await res.json();
+        setMealLogs(prev => [savedLog, ...prev]);
+        
+        if (isFirstLogToday) incrementStreak();
+        addXP(75);
+        
+        // Reset
+        setFoodList([]);
+        setMealNotes('');
+        setGlucoseBefore('');
+        setGlucoseAfter('');
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch (error) {
+       console.error("Failed to save meal", error);
+    }
+  };
+
+  const handleDeleteMeal = async (id: string) => {
+    try {
+      const res = await fetch(`/food/api/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+         setMealLogs(prev => prev.filter(log => log.id !== id));
+      }
+    } catch (error) {
+       console.error("Failed to delete meal", error);
+    }
   };
 
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -497,14 +544,18 @@ export default function FoodScreen() {
                   {mealLogs.length} meals logged
                 </span>
               </div>
-              {mealLogs.length === 0 ? (
+              {isLoading ? (
+                <div className="text-center py-16 text-slate-400">
+                  <p className="font-medium animate-pulse">Loading meals...</p>
+                </div>
+              ) : mealLogs.length === 0 ? (
                 <div className="text-center py-16 text-slate-400">
                   <Utensils size={32} className="mx-auto mb-3 opacity-40" />
                   <p className="font-medium">No meals logged yet. Start from the Log tab!</p>
                 </div>
               ) : (
                 mealLogs.map(meal => (
-                  <MealCard key={meal.id} meal={meal} onDelete={deleteMealLog} />
+                  <MealCard key={meal.id} meal={meal} onDelete={handleDeleteMeal} />
                 ))
               )}
             </div>
