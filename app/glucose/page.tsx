@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Card } from '../../components/ui/Card';
 import { GradientButton } from '../../components/ui/GradientButton';
@@ -8,13 +8,21 @@ import { StatusPill } from '../../components/ui/StatusPill';
 import { Plus, Download, ChevronRight, FileText, Droplet, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { MOCK_WEEKLY_DATA } from '../../lib/mocks';
+import { MOCK_WEEKLY_DATA, GlucoseLog } from '../../lib/mocks';
 
 export default function GlucoseScreen() {
   const [activeTab, setActiveTab] = useState<'history' | 'weekly'>('history');
   const [showAddModal, setShowAddModal] = useState(false);
   
-  const { logs, addLog, addXP, incrementStreak } = useStore();
+  const { addXP, incrementStreak } = useStore();
+  const [logs, setLogs] = useState<GlucoseLog[]>([]);
+
+  useEffect(() => {
+    fetch('/glucose/api')
+      .then(res => res.json())
+      .then(data => setLogs(data))
+      .catch(err => console.error(err));
+  }, []);
 
   // New Log State
   const [newValue, setNewValue] = useState('');
@@ -22,28 +30,43 @@ export default function GlucoseScreen() {
   const [newInsulin, setNewInsulin] = useState('0');
   const [newNotes, setNewNotes] = useState('');
 
-  const handleSaveLog = (e: React.FormEvent) => {
+  const handleSaveLog = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newValue) {
       const isFirstLogToday = logs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString()).length === 0;
       if (isFirstLogToday) incrementStreak();
 
-      addLog({
+      const newEntry = {
         value: parseInt(newValue),
         timestamp: new Date().toISOString(),
         mealType: newMealType,
         insulin: parseInt(newInsulin) || 0,
         notes: newNotes
-      });
-      addXP(50); // Gamification reward
-      setShowAddModal(false);
-      // Reset form
-      setNewValue('');
-      setNewInsulin('0');
-      setNewNotes('');
-      
-      const msg = new SpeechSynthesisUtterance('Log saved successfully. You earned 50 XP!');
-      window.speechSynthesis.speak(msg);
+      };
+
+      try {
+        const res = await fetch('/glucose/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newEntry)
+        });
+        
+        if (res.ok) {
+          const savedLog = await res.json();
+          setLogs(prev => [savedLog, ...prev]);
+          addXP(50); // Gamification reward
+          setShowAddModal(false);
+          // Reset form
+          setNewValue('');
+          setNewInsulin('0');
+          setNewNotes('');
+          
+          const msg = new SpeechSynthesisUtterance('Log saved successfully. You earned 50 XP!');
+          window.speechSynthesis.speak(msg);
+        }
+      } catch (err) {
+        console.error('Failed to save log', err);
+      }
     }
   };
 
