@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { href: '/glucose', icon: ScrollText, label: 'Glucose' },
   { href: '/risk', icon: AlertTriangle, label: 'Risk' },
   { href: '/recipes', icon: Utensils, label: 'Recipes' },
-  { href: '/chat', icon: MessageCircle, label: 'RushBuddy AI' },
+  { href: '/chat', icon: MessageCircle, label: 'jan AI' },
 ];
 
 export function Sidebar() {
@@ -33,8 +33,8 @@ export function Sidebar() {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium",
-                isActive 
-                  ? "bg-blue-50 text-blue-600 shadow-[inset_4px_0_0_#3B82F6]" 
+                isActive
+                  ? "bg-blue-50 text-blue-600 shadow-[inset_4px_0_0_#3B82F6]"
                   : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
               )}
             >
@@ -46,13 +46,13 @@ export function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-slate-100 flex flex-col gap-2">
-         <Link
-            href="/emergency"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-semibold shadow-sm"
-          >
-            <Phone size={20} className="animate-pulse" />
-            Emergency
-          </Link>
+        <Link
+          href="/emergency"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-semibold shadow-sm"
+        >
+          <Phone size={20} className="animate-pulse" />
+          Emergency
+        </Link>
         <button
           onClick={logout}
           className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors font-medium w-full text-left mt-2"
