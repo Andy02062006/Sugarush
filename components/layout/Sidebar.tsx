@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { href: '/glucose', icon: ScrollText, label: 'Glucose' },
   { href: '/risk', icon: AlertTriangle, label: 'Risk' },
   { href: '/recipes', icon: Utensils, label: 'Recipes' },
-  { href: '/chat', icon: MessageCircle, label: 'jan AI' },
+  { href: '/chat', icon: MessageCircle, label: 'RushBuddy AI' },
 ];
 
 export function Sidebar() {
