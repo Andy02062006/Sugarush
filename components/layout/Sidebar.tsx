@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, ScrollText, AlertTriangle, Utensils, MessageCircle, Phone, LogOut } from 'lucide-react';
 import { useStore } from '../../store';
 import { cn } from '../../lib/utils';
+import { Avatar } from '../ui/Avatar';
 
 const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -18,10 +19,12 @@ export function Sidebar() {
   const logout = useStore(s => s.logout);
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 hidden md:flex flex-col z-40 shadow-sm">
-      <div className="p-6 flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-primary-gradient flex items-center justify-center text-white font-bold text-xl">S</div>
-        <span className="font-bold text-xl text-slate-900 tracking-tight">Sugarush</span>
+    <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-border hidden md:flex flex-col z-40">
+      <div className="p-6 flex items-center gap-3">
+        <div className="animate-float">
+          <Avatar fallback="S" size="sm" />
+        </div>
+        <span className="font-heading font-black text-xl text-text-primary tracking-tight">Sugarush.</span>
       </div>
 
       <nav className="flex-1 px-4 space-y-2 mt-4">
@@ -31,31 +34,34 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              aria-label={item.label}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium",
+                "flex items-center gap-3 px-3 py-2.5 rounded-[10px] transition-all duration-200 text-sm focus-ring",
                 isActive
-                  ? "bg-blue-50 text-blue-600 shadow-[inset_4px_0_0_#3B82F6]"
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-cream-soft text-text-primary font-semibold shadow-sm"
+                  : "text-text-secondary hover:bg-cream-soft/50 hover:text-text-primary font-medium"
               )}
             >
-              <item.icon size={20} className={isActive ? "text-blue-600" : ""} />
+              <item.icon size={18} className={isActive ? "text-text-primary" : "text-text-muted"} />
               {item.label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-100 flex flex-col gap-2">
+      <div className="p-4 border-t border-border flex flex-col gap-2">
         <Link
           href="/emergency"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-semibold shadow-sm"
+          aria-label="Emergency"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] bg-status-red/10 text-status-red hover:bg-status-red/15 transition-colors font-semibold shadow-sm focus-ring text-sm"
         >
-          <Phone size={20} className="animate-pulse" />
+          <Phone size={18} className="animate-pulse" />
           Emergency
         </Link>
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors font-medium w-full text-left mt-2"
+          aria-label="Sign Out"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-text-secondary hover:bg-cream-soft/50 hover:text-text-primary transition-colors font-medium w-full text-left mt-1 focus-ring text-sm"
         >
           <LogOut size={20} />
           Sign Out

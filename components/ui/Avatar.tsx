@@ -7,9 +7,10 @@ interface AvatarProps {
   fallback: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
+  animate?: boolean;
 }
 
-export function Avatar({ src, fallback, size = 'md', className }: AvatarProps) {
+export function Avatar({ src, fallback, size = 'md', animate = false, className }: AvatarProps) {
   const sizeMap = {
     sm: 'w-8 h-8 text-xs',
     md: 'w-10 h-10 text-sm',
@@ -20,8 +21,9 @@ export function Avatar({ src, fallback, size = 'md', className }: AvatarProps) {
   return (
     <div
       className={cn(
-        "relative inline-flex items-center justify-center rounded-full bg-slate-200 overflow-hidden font-semibold text-slate-600 shrink-0",
+        "relative inline-flex items-center justify-center rounded-full bg-amber-light overflow-hidden font-heading font-semibold text-amber-accent shrink-0",
         sizeMap[size],
+        animate && "animate-float",
         className
       )}
     >

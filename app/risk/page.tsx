@@ -22,7 +22,7 @@ export default function RiskScreen() {
   } else if (currentReading > 140) {
     score = 35;
     status = 'Moderate';
-    color = '#F59E0B';
+    color = '#E07A3A';
   }
 
   const factors = [
@@ -33,113 +33,110 @@ export default function RiskScreen() {
   ];
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
-      <header className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Risk Forecast</h1>
-          <p className="text-slate-500 font-medium mt-1">AI-powered insights</p>
-        </div>
-        <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
-          <Activity size={20} />
+    <div className="p-4 md:p-8 space-y-6 pb-24 md:pb-8">
+      
+      <header className="mb-6 relative mt-2">
+        <div className="flex justify-between items-end relative z-10">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-500 rounded-md text-[11px] font-bold uppercase tracking-widest mb-4">
+              <Activity size={12} /> Forecast
+            </div>
+            <h1 className="text-4xl md:text-5xl font-heading font-black text-slate-900 tracking-tight leading-none">Risk <span className="text-slate-400">Analysis</span></h1>
+          </div>
         </div>
       </header>
 
       {/* Main Score Card */}
-      <Card className="flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-white to-slate-50 relative overflow-hidden">
-        {/* Background decorative blob */}
-        <div 
-          className="absolute opacity-10 blur-3xl rounded-full w-64 h-64 -translate-y-1/2 -translate-x-1/2 top-1/2 left-1/2"
-          style={{ backgroundColor: color }}
-        ></div>
-
-        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 relative z-10">Current Risk Score</h2>
+      <Card className="p-8 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col md:flex-row items-center gap-8 md:gap-12 relative overflow-hidden">
+        {/* Subtle background decoration */}
+        <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.03] blur-3xl transform translate-x-1/3 -translate-y-1/3 rounded-full pointer-events-none" style={{ backgroundColor: color }}></div>
         
-        {/* Animated Score Circle */}
-        <div className="relative mb-6 z-10">
-          <svg className="w-48 h-48 transform -rotate-90">
+        {/* Sleek Score Circle */}
+        <div className="relative shrink-0 flex items-center justify-center">
+          <svg viewBox="0 0 224 224" className="w-48 h-48 md:w-56 md:h-56 transform -rotate-90 relative z-10">
             <circle
-              cx="96" cy="96" r="88"
+              cx="112" cy="112" r="100"
               fill="none"
-              stroke="#E2E8F0"
+              stroke="#F1F5F9"
               strokeWidth="12"
             />
             <motion.circle
-              cx="96" cy="96" r="88"
+              cx="112" cy="112" r="100"
               fill="none"
               stroke={color}
               strokeWidth="12"
-              strokeDasharray={2 * Math.PI * 88}
-              initial={{ strokeDashoffset: 2 * Math.PI * 88 }}
-              animate={{ strokeDashoffset: 2 * Math.PI * 88 * (1 - score / 100) }}
+              strokeDasharray={2 * Math.PI * 100}
+              initial={{ strokeDashoffset: 2 * Math.PI * 100 }}
+              animate={{ strokeDashoffset: 2 * Math.PI * 100 * (1 - score / 100) }}
               transition={{ duration: 1.5, ease: "easeOut" }}
               strokeLinecap="round"
             />
           </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-             <span className="text-6xl font-black text-slate-800 tracking-tighter">{score}</span>
-             <span className="text-sm font-bold text-slate-400">/ 100</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+             <span className="text-5xl md:text-6xl font-heading font-black text-slate-900 tracking-tighter leading-none">{score}</span>
+             <span className="font-bold text-slate-400 uppercase tracking-widest text-[11px] mt-2">Score</span>
           </div>
         </div>
 
-        <div 
-          className="px-4 py-1.5 rounded-full text-sm font-bold backdrop-blur-sm shadow-sm relative z-10"
-          style={{ backgroundColor: `${color}20`, color: color }}
-        >
-          {status}
+        <div className="flex-1 text-center md:text-left z-10">
+          <div 
+            className="inline-block px-4 py-1.5 rounded-md text-[13px] font-black uppercase tracking-wider mb-4"
+            style={{ backgroundColor: `${color}15`, color: color }}
+          >
+            {status}
+          </div>
+          <p className="text-slate-500 text-[15px] font-medium leading-relaxed max-w-md">
+            Based on recent events, your glucose variability indicates a {status.toLowerCase()} for the upcoming hours. Focus on maintaining steady behaviors.
+          </p>
         </div>
       </Card>
 
-      {/* Factor Breakdown */}
+      {/* Factors */}
       <div>
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <AlertTriangle size={16} className="text-amber-500" />
-          Contributing Factors
-        </h3>
-        <div className="space-y-3">
+        <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 mt-8">Contributing Factors</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {factors.map((factor, i) => (
-            <Card key={i} className="p-4 flex items-center gap-4 hover:border-slate-300 transition-colors">
-               <div className="flex-1">
-                 <div className="flex justify-between items-center w-full mb-2">
-                   <p className="font-bold text-slate-700">{factor.name}</p>
-                   <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
-                     factor.type === 'success' ? 'bg-green-100 text-green-700' :
-                     factor.type === 'warning' ? 'bg-amber-100 text-amber-700' :
-                     factor.type === 'danger' ? 'bg-red-100 text-red-700' :
-                     'bg-slate-100 text-slate-600'
-                   }`}>
-                     {factor.value}
-                   </span>
-                 </div>
-                 {/* Progress Bar */}
-                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                   <motion.div 
-                     initial={{ width: 0 }}
-                     animate={{ width: `${factor.impact}%` }}
-                     transition={{ duration: 1, delay: 0.2 + (i * 0.1) }}
-                     className="h-full rounded-full"
-                     style={{ 
-                       backgroundColor: 
-                        factor.type === 'success' ? '#22C55E' :
-                        factor.type === 'warning' ? '#F59E0B' :
-                        factor.type === 'danger' ? '#EF4444' : '#94A3B8'
-                     }}
-                   />
-                 </div>
+            <Card key={i} className="p-5 bg-white border border-slate-200 shadow-sm rounded-2xl flex flex-col justify-center transition-shadow hover:shadow-md cursor-pointer group">
+               <div className="flex justify-between items-center w-full mb-3">
+                 <p className="font-bold text-[14px] text-slate-900">{factor.name}</p>
+                 <span className={`text-[11px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                   factor.type === 'success' ? 'bg-green-50 text-green-600 border border-green-100' :
+                   factor.type === 'warning' ? 'bg-orange-50 text-orange-600 border border-orange-100' :
+                   factor.type === 'danger' ? 'bg-red-50 text-red-600 border border-red-100' :
+                   'bg-slate-50 text-slate-500 border border-slate-200'
+                 }`}>
+                   {factor.value}
+                 </span>
+               </div>
+               
+               {/* Progress Bar */}
+               <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                 <motion.div 
+                   initial={{ width: 0 }}
+                   animate={{ width: `${factor.impact}%` }}
+                   transition={{ duration: 1, delay: 0.2 + (i * 0.1) }}
+                   className="h-full rounded-full"
+                   style={{ 
+                     backgroundColor: 
+                      factor.type === 'success' ? '#16A34A' :
+                      factor.type === 'warning' ? '#EA580C' :
+                      factor.type === 'danger' ? '#DC2626' : '#94A3B8'
+                   }}
+                 />
                </div>
             </Card>
           ))}
         </div>
       </div>
 
-      <Card className="bg-blue-50 border-blue-100 p-5 mt-8">
-        <div className="flex items-start gap-4">
-          <div className="text-blue-500 mt-0.5"><Info size={24} /></div>
-          <div>
-            <h4 className="font-bold text-blue-900 mb-1">How is this calculated?</h4>
-            <p className="text-sm text-blue-800/80 leading-relaxed font-medium">
-              We use a simulated ML model analyzing your historical glucose variability, expected meal patterns, local weather (which impacts natural mobility), and time-in-range.
-            </p>
-          </div>
+      {/* Info Card */}
+      <Card className="bg-slate-50 border border-slate-200 p-6 rounded-2xl mt-4 shadow-sm flex items-start gap-4">
+        <div className="text-slate-400 mt-0.5"><Info size={20} /></div>
+        <div>
+          <h4 className="font-bold text-[13px] text-slate-900 uppercase tracking-widest mb-1">How is this calculated?</h4>
+          <p className="text-[14px] text-slate-500 leading-relaxed font-medium">
+            We use a simulated ML model analyzing your historical glucose variability, expected meal patterns, local weather (which impacts natural mobility), and time-in-range.
+          </p>
         </div>
       </Card>
     </div>

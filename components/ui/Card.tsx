@@ -20,7 +20,7 @@ export function Card({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       className={cn(
-        "bg-white rounded-[16px] shadow-[0_1px_6px_rgba(15,23,42,0.05)] border border-[#E2E8F0] overflow-hidden",
+        "bg-white rounded-[16px] shadow-sm border border-border overflow-hidden transition-all duration-300",
         !noPadding && "p-6",
         className
       )}

@@ -16,7 +16,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 md:hidden pb-safe z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+    <nav className="fixed bottom-0 inset-x-0 bg-cream-card border-t border-border md:hidden pb-safe z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-around px-2 h-16 relative">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname.startsWith(item.href);
@@ -24,15 +24,16 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              aria-label={item.label}
               className={cn(
-                "flex flex-col items-center justify-center w-16 h-full gap-1 transition-colors",
-                isActive ? "text-blue-600" : "text-slate-400 hover:text-slate-600"
+                "flex flex-col items-center justify-center w-16 h-full gap-1 transition-colors focus-ring rounded-lg",
+                isActive ? "text-teal-primary" : "text-text-muted hover:text-text-secondary"
               )}
             >
               <item.icon size={22} className={cn("transition-transform", isActive ? "scale-110" : "")} />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[10px] font-bold">{item.label}</span>
               {isActive && (
-                <div className="absolute top-0 w-8 h-1 bg-blue-600 rounded-b-full"></div>
+                <div className="absolute top-0 w-8 h-1 bg-teal-primary rounded-b-full"></div>
               )}
             </Link>
           );
@@ -42,7 +43,8 @@ export function BottomNav() {
       {/* Floating Emergency Button for Mobile */}
       <Link 
         href="/emergency"
-        className="fixed bottom-20 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-500/30 animate-pulse md:hidden"
+        aria-label="Emergency"
+        className="fixed bottom-20 right-4 w-12 h-12 bg-status-red rounded-full flex items-center justify-center text-white shadow-lg shadow-status-red/30 animate-pulse md:hidden focus-ring"
       >
         <Phone size={24} />
       </Link>

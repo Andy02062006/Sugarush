@@ -26,7 +26,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-bg flex font-body">
       <Sidebar />
       <div className="flex-1 flex flex-col md:pl-64 h-screen">
         <main className="flex-1 overflow-y-auto pb-20 md:pb-0 scroll-smooth">

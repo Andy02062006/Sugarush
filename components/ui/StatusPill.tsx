@@ -9,27 +9,27 @@ interface StatusPillProps {
 
 export function StatusPill({ value, type = 'glucose' }: StatusPillProps) {
   let status = 'normal';
-  let colorClass = 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20';
+  let colorClass = 'bg-status-green/10 text-status-green border-status-green/20';
   let text = 'Normal';
 
   if (type === 'glucose') {
     if (value < 70) {
       status = 'low';
-      colorClass = 'bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/20';
+      colorClass = 'bg-status-sky/10 text-status-sky border-status-sky/20';
       text = 'Low';
     } else if (value > 140 && value <= 180) {
       status = 'elevated';
-      colorClass = 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20';
+      colorClass = 'bg-status-amber/10 text-status-amber border-status-amber/20';
       text = 'Elevated';
     } else if (value > 180) {
       status = 'high';
-      colorClass = 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20';
+      colorClass = 'bg-status-red/10 text-status-red border-status-red/20';
       text = 'High';
     }
   }
 
   return (
-    <div className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold", colorClass)}>
+    <div className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-label", colorClass)}>
       {type === 'glucose' ? <Droplet size={14} className="fill-current" /> : <Activity size={14} />}
       {text}
     </div>

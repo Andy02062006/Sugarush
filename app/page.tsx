@@ -29,8 +29,8 @@ export default function Splash() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-primary-gradient text-white overflow-hidden relative">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-bg text-text-primary overflow-hidden relative">
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
       
       <AnimatePresence>
         <motion.div
@@ -49,9 +49,9 @@ export default function Splash() {
             animate={{ 
               y: [0, -10, 0],
               boxShadow: [
-                "0px 10px 30px rgba(0,0,0,0.1)",
-                "0px 20px 40px rgba(0,0,0,0.2)",
-                "0px 10px 30px rgba(0,0,0,0.1)"
+                "0px 10px 30px rgba(0,0,0,0.05)",
+                "0px 20px 40px rgba(0,0,0,0.1)",
+                "0px 10px 30px rgba(0,0,0,0.05)"
               ]
             }}
             transition={{ 
@@ -59,15 +59,15 @@ export default function Splash() {
               repeat: Infinity,
               ease: "easeInOut" 
             }}
-            className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mb-6"
+            className="w-24 h-24 bg-card rounded-3xl flex items-center justify-center mb-6 animate-float"
           >
-            <Activity size={48} className="text-blue-600" />
+            <Activity size={48} className="text-teal-primary" />
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-5xl font-extrabold tracking-tight mb-3 origin-center"
+            className="text-5xl font-heading font-extrabold tracking-tight mb-3 origin-center text-text-primary"
           >
             Sugarush
           </motion.h1>
@@ -75,7 +75,7 @@ export default function Splash() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-blue-100 font-medium text-lg tracking-wide"
+            className="text-text-secondary font-medium text-lg tracking-wide"
           >
             Your sweet life companion
           </motion.p>
