@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { UserProfile, GlucoseLog, Badge, MealLog, MOCK_LOGS, MOCK_BADGES, MOCK_MEAL_LOGS } from '../lib/mocks';
+import { UserProfile, GlucoseLog, Badge, MealLog, MOCK_LOGS, MOCK_BADGES, MOCK_MEAL_LOGS, Reward, MOCK_REWARDS } from '../lib/mocks';
 
 interface AppState {
   // USER slice
@@ -19,8 +19,11 @@ interface AppState {
   xp: number;
   streak: number;
   badges: Badge[];
+  redeemedRewards: string[]; // array of reward IDs
   addXP: (amount: number) => void;
+  incrementStreak: () => void;
   unlockBadge: (badgeId: string) => void;
+  redeemReward: (rewardId: string, cost: number) => void;
 
   // MEAL slice
   mealLogs: MealLog[];
@@ -58,12 +61,23 @@ export const useStore = create<AppState>()(
       xp: 850,
       streak: 7,
       badges: MOCK_BADGES,
+      redeemedRewards: [],
       addXP: (amount) => set((state) => ({ xp: state.xp + amount })),
+      incrementStreak: () => set((state) => ({ streak: state.streak + 1 })),
       unlockBadge: (badgeId) => set((state) => {
         const updatedBadges = state.badges.map(b => 
           b.id === badgeId ? { ...b, unlockedAt: new Date().toISOString() } : b
         );
         return { badges: updatedBadges };
+      }),
+      redeemReward: (rewardId, cost) => set((state) => {
+        if (state.xp >= cost && !state.redeemedRewards.includes(rewardId)) {
+          return {
+            xp: state.xp - cost,
+            redeemedRewards: [...state.redeemedRewards, rewardId],
+          };
+        }
+        return state;
       }),
 
       // MEAL slice

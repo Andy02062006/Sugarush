@@ -14,7 +14,7 @@ export default function GlucoseScreen() {
   const [activeTab, setActiveTab] = useState<'history' | 'weekly'>('history');
   const [showAddModal, setShowAddModal] = useState(false);
   
-  const { logs, addLog, addXP } = useStore();
+  const { logs, addLog, addXP, incrementStreak } = useStore();
 
   // New Log State
   const [newValue, setNewValue] = useState('');
@@ -25,6 +25,9 @@ export default function GlucoseScreen() {
   const handleSaveLog = (e: React.FormEvent) => {
     e.preventDefault();
     if (newValue) {
+      const isFirstLogToday = logs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString()).length === 0;
+      if (isFirstLogToday) incrementStreak();
+
       addLog({
         value: parseInt(newValue),
         timestamp: new Date().toISOString(),

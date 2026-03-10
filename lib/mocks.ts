@@ -55,6 +55,15 @@ export interface Badge {
   unlockedAt?: string;
 }
 
+export interface Reward {
+  id: string;
+  title: string;
+  description: string;
+  cost: number;
+  type: 'coupon' | 'pharmacy' | 'dietitian' | 'other';
+  icon: string;
+}
+
 export const MOCK_DAILY_TIPS = [
   "Walking for 10 minutes after a meal can significantly reduce your blood sugar spike.",
   "Stay hydrated! Drinking water helps your kidneys flush out excess sugar through urine.",
@@ -139,6 +148,41 @@ export const MOCK_BADGES: Badge[] = [
     name: 'Recipe Master',
     description: 'Tried 5 healthy recipes',
     icon: 'ChefHat'
+  }
+];
+
+export const MOCK_REWARDS: Reward[] = [
+  {
+    id: 'rew1',
+    title: '15% Off Apollo Pharmacy',
+    description: 'Get 15% off on your next purchase of diabetes essentials.',
+    cost: 500,
+    type: 'pharmacy',
+    icon: 'Pill',
+  },
+  {
+    id: 'rew2',
+    title: 'Free Dietitian Consultation',
+    description: 'A 15-minute free virtual consultation with a certified dietitian.',
+    cost: 1500,
+    type: 'dietitian',
+    icon: 'PhoneCall',
+  },
+  {
+    id: 'rew3',
+    title: '$10 SugarFree Groceries Coupon',
+    description: 'Redeem this coupon at participating supermarkets.',
+    cost: 1000,
+    type: 'coupon',
+    icon: 'ShoppingCart',
+  },
+  {
+    id: 'rew4',
+    title: 'Free Sugarush Premium (1 Month)',
+    description: 'Unlock advanced analytics.',
+    cost: 2500,
+    type: 'other',
+    icon: 'Star',
   }
 ];
 

@@ -204,7 +204,7 @@ function WarningBanner({ warnings }: { warnings: FoodWarning[] }) {
 type Tab = 'log' | 'history' | 'insights';
 
 export default function FoodScreen() {
-  const { mealLogs, addMealLog, deleteMealLog, addXP } = useStore();
+  const { mealLogs, addMealLog, deleteMealLog, addXP, incrementStreak } = useStore();
 
   // Build the risk profile from all historical data
   const riskProfile = useMemo(() => buildFoodRiskProfile(mealLogs), [mealLogs]);
@@ -241,6 +241,10 @@ export default function FoodScreen() {
 
   const handleSaveMeal = () => {
     if (foodList.length === 0) return;
+    
+    const isFirstLogToday = mealLogs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString()).length === 0;
+    if (isFirstLogToday) incrementStreak();
+
     const before = parseInt(glucoseBefore) || undefined;
     const after = parseInt(glucoseAfter) || undefined;
     const spikeAmt = before && after ? Math.max(0, after - before) : undefined;

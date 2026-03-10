@@ -180,10 +180,10 @@ export default function DashboardScreen() {
               <span className="text-[13px] font-bold text-slate-700">Log Sugar</span>
             </div>
           </Link>
-          <Link href="/food" aria-label="Recipes">
+          <Link href="/rewards" aria-label="Rewards">
             <div className="bg-white border border-slate-200 rounded-2xl w-full flex flex-col items-center py-6 gap-3 hover:shadow-md transition-shadow cursor-pointer">
-              <Utensils size={24} className="text-slate-900" />
-              <span className="text-[13px] font-bold text-slate-700">Recipes</span>
+              <Trophy size={24} className="text-amber-500" />
+              <span className="text-[13px] font-bold text-slate-700">Rewards</span>
             </div>
           </Link>
           <Link href="/chat" aria-label="Ask RushBuddy">
