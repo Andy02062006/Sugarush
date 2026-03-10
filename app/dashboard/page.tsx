@@ -9,6 +9,7 @@ import { Card } from '../../components/ui/Card';
 import { GradientButton } from '../../components/ui/GradientButton';
 import { ArrowRight, Plus, Droplet, Activity, Flame, Calendar, CloudRain, Wind, Lightbulb, Trophy, Utensils, Bot, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { PreemptiveNudge } from '../../components/widgets/PreemptiveNudge';
 
 export default function DashboardScreen() {
   const { profile, currentReading, logs, xp, streak, badges } = useStore();
@@ -38,6 +39,8 @@ export default function DashboardScreen() {
       </header>
       
       <XPBar xp={xp} />
+
+      <PreemptiveNudge />
 
       {/* BENTO GRID CONTAINER */}
       <div className="grid grid-cols-1 md:grid-cols-12 auto-rows-min gap-4 md:gap-6">
