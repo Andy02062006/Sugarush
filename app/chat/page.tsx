@@ -35,28 +35,6 @@ export default function ChatScreen() {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const generateAIResponse = (query: string): string => {
-    const text = query.toLowerCase();
-    
-    if (text.includes('snack') || text.includes('eat') || text.includes('hungry')) {
-      if (currentReading > 180) {
-        return "Since your glucose is currently high, I recommend a zero-carb snack like almonds, walnuts, or some celery with a little peanut butter. Drink plenty of water as well!";
-      } else if (currentReading < 70) {
-        return "Your sugar is low! Please eat something fast-acting immediately: 15g of carbs, like a small juice box, 3-4 glucose tablets, or a tablespoon of honey. Check again in 15 minutes.";
-      }
-      return "A great balanced snack is an apple with a handful of almonds, or greek yogurt with berries. The protein and fat help slow down the carb absorption!";
-    }
-    
-    if (text.includes('high')) {
-      return "For a high reading, drinking 1-2 glasses of water and taking a 15-minute light walk can help bring it down organically. If you take insulin, follow your doctor's correction ratio.";
-    }
-
-    if (text.includes('banana')) {
-      return "Bananas are great, but they can spike sugar fast! Try eating a slightly green one (less sugar, more resistant starch) and pair it with a handful of nuts to stabilize the spike.";
-    }
-
-    return "That's a great question! While I'm a simple AI demo right now, normally I would analyze this against the latest ADA guidelines and your personal medical history to give you a tailored answer.";
-  };
 
   const handleSend = async (e?: React.FormEvent, promptOverride?: string) => {
     e?.preventDefault();
@@ -65,20 +43,38 @@ export default function ChatScreen() {
 
     // Add user msg
     const newMsg: Message = { id: Date.now().toString(), sender: 'user', text: textToSend };
-    setMessages(prev => [...prev, newMsg]);
+    const newMessages = [...messages, newMsg];
+    setMessages(newMessages);
     setInput('');
     setIsTyping(true);
 
-    // Simulate network delay
-    setTimeout(() => {
-      const response = generateAIResponse(textToSend);
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: 'ai', text: response }]);
+    try {
+      const apiMessages = newMessages.map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: apiMessages })
+      });
+
+      if (!res.ok) throw new Error('API request failed');
+      
+      const data = await res.json();
+      const responseText = data.choices[0].message.content;
+
+      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'ai', text: responseText }]);
       setIsTyping(false);
       
-      // Auto speech for AI response
-      const utterance = new SpeechSynthesisUtterance(response);
+      const utterance = new SpeechSynthesisUtterance(responseText);
       window.speechSynthesis.speak(utterance);
-    }, 1500);
+    } catch (error) {
+      console.error(error);
+      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'ai', text: "Sorry, I'm having trouble connecting to my AI brain right now." }]);
+      setIsTyping(false);
+    }
   };
 
   return (

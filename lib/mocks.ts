@@ -210,11 +210,24 @@ export const MOCK_RECIPES: Recipe[] = [
     protein: 4,
     fat: 3,
     ingredients: ['pearl millet', 'urad dal', 'fenugreek seeds', 'salt', 'water'],
-    imageUrl: 'https://images.unsplash.com/photo-1668225576189-e15fc720023a?w=500&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80',
     prepTime: '24 hours (fermentation)'
   },
   {
     id: 'r3',
+    name: 'Quinoa & Black Bean Bowl',
+    nameTamil: 'கினோவா மற்றும் கருப்பு பீன் கிண்ணம்',
+    description: 'High fiber, low GI meal pre-cooked for convenience.',
+    calories: 320,
+    carbs: 45,
+    protein: 15,
+    fat: 8,
+    ingredients: ['quinoa', 'black beans', 'corn', 'bell peppers', 'avocado', 'lime juice'],
+    imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80',
+    prepTime: '20 mins'
+  },
+  {
+    id: 'r4',
     name: 'Almond Flour Pancakes',
     nameTamil: 'பாதாம் மாவு பேன்கேக் (Almond Flour Pancakes)',
     description: 'Fluffy, low-carb pancakes perfect for a weekend breakfast without the sugar spike.',
@@ -227,7 +240,7 @@ export const MOCK_RECIPES: Recipe[] = [
     prepTime: '15 mins'
   },
   {
-    id: 'r4',
+    id: 'r5',
     name: 'Grilled Salmon & Asparagus',
     nameTamil: 'கிரில் செய்யப்பட்ட சால்மன் மற்றும் அஸ்பாரகஸ்',
     description: 'High in Omega-3 fatty acids which reduce inflammation and improve insulin sensitivity.',
