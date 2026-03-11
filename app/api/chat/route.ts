@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from "../../../lib/auth";
+import prisma from "../../../lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -50,6 +51,36 @@ export async function POST(req: Request) {
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('Error in chat API:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+// Persist chat messages to MongoDB
+export async function PUT(req: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { messages } = await req.json();
+    if (!messages || !Array.isArray(messages)) {
+      return NextResponse.json({ error: 'Messages array required' }, { status: 400 });
+    }
+
+    for (const msg of messages) {
+      await prisma.chatMessage.create({
+        data: {
+          userId: session.user.id,
+          sender: msg.sender,
+          text: msg.text,
+        },
+      });
+    }
+
+    return NextResponse.json({ saved: messages.length });
+  } catch (error: any) {
+    console.error('Error saving chat messages:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

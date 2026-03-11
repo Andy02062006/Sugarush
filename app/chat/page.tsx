@@ -28,14 +28,29 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Only set initial message once session is loaded to prevent hydration mismatches
-    if (messages.length === 0) {
-      setMessages([{ id: '1', sender: 'ai', text: initialMessageText }]);
+    // Load persisted chat history from MongoDB
+    if (!historyLoaded) {
+      fetch('/api/chat/history')
+        .then(res => res.ok ? res.json() : [])
+        .then((data: any[]) => {
+          if (data.length > 0) {
+            setMessages(data.map((m: any) => ({ id: m.id, sender: m.sender, text: m.text })));
+          } else {
+            // No history — show the welcome message
+            setMessages([{ id: '1', sender: 'ai', text: initialMessageText }]);
+          }
+          setHistoryLoaded(true);
+        })
+        .catch(() => {
+          setMessages([{ id: '1', sender: 'ai', text: initialMessageText }]);
+          setHistoryLoaded(true);
+        });
     }
-  }, [session?.user?.name]);
+  }, [session?.user?.name, historyLoaded]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -78,6 +93,18 @@ export default function ChatScreen() {
       setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'ai', text: responseText }]);
       setIsTyping(false);
       
+      // Persist user + AI messages to MongoDB (fire and forget)
+      fetch('/api/chat', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { sender: 'user', text: textToSend },
+            { sender: 'ai', text: responseText },
+          ]
+        })
+      }).catch(() => {});
+
       const utterance = new SpeechSynthesisUtterance(responseText);
       window.speechSynthesis.speak(utterance);
     } catch (error) {

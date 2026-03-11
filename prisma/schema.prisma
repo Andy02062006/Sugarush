@@ -3,14 +3,15 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
-// NextAuth Next.js models
+// ─── NextAuth.js Models ─────────────────────────────────────────────────────
+
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
+  id                 String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String  @db.ObjectId
   type               String
   provider           String
   providerAccountId  String
@@ -28,15 +29,15 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   sessionToken String   @unique
-  userId       String
+  userId       String   @db.ObjectId
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   name          String?
   email         String?   @unique
   emailVerified DateTime?
@@ -45,15 +46,17 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
-  // Real App specific Relations
+  // App-specific Relations
   profile       Profile?
   glucoseLogs   GlucoseLog[]
   mealLogs      MealLog[]
   rewards       UserReward[]
   badges        UserBadge[]
+  chatMessages  ChatMessage[]
 }
 
 model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
   identifier String
   token      String   @unique
   expires    DateTime
@@ -61,11 +64,12 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Custom App Models
+// ─── App Models ─────────────────────────────────────────────────────────────
+
 model Profile {
-  id             String @id @default(cuid())
-  userId         String @unique
-  diabetesType   String @default("Type 2") // Type 1, Type 2, Gestational, Prediabetes
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String @unique @db.ObjectId
+  diabetesType   String @default("Type 2")
   age            Int    @default(30)
   targetRangeMin Int    @default(70)
   targetRangeMax Int    @default(140)
@@ -76,11 +80,11 @@ model Profile {
 }
 
 model GlucoseLog {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   value     Int
   timestamp DateTime @default(now())
-  mealType  String   // Fasting, Before Lunch, After Dinner
+  mealType  String
   insulin   Float?
   notes     String?
 
@@ -88,8 +92,8 @@ model GlucoseLog {
 }
 
 model MealLog {
-  id                String   @id @default(cuid())
-  userId            String
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
   timestamp         DateTime @default(now())
   notes             String?
   glucoseBeforeMeal Int?
@@ -102,8 +106,8 @@ model MealLog {
 }
 
 model FoodItem {
-  id             String  @id @default(cuid())
-  mealLogId      String
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  mealLogId      String  @db.ObjectId
   name           String
   portionSize    String?
   estimatedCarbs Float?
@@ -115,9 +119,9 @@ model FoodItem {
 }
 
 model UserReward {
-  id         String   @id @default(cuid())
-  userId     String
-  rewardId   String   // Corresponds to mock ID rew1, rew2 etc
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  rewardId   String
   redeemedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -125,11 +129,37 @@ model UserReward {
 }
 
 model UserBadge {
-  id         String   @id @default(cuid())
-  userId     String
-  badgeId    String   // Corresponds to mock ID b1, b2 etc
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  badgeId    String
   unlockedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([userId, badgeId])
+}
+
+// ─── New Models for Persistence ─────────────────────────────────────────────
+
+model ChatMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  sender    String   // "user" or "ai"
+  text      String
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Recipe {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  nameTamil   String
+  description String
+  calories    Int
+  carbs       Int
+  protein     Int
+  fat         Int
+  ingredients String[]
+  imageUrl    String
+  prepTime    String
 }
