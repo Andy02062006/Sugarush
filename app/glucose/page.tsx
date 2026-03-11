@@ -16,15 +16,14 @@ export default function GlucoseScreen() {
   const [activeTab, setActiveTab] = useState<'history' | 'weekly'>('history');
   const [showAddModal, setShowAddModal] = useState(false);
   
-  const { addXP, incrementStreak } = useStore();
-  const [logs, setLogs] = useState<GlucoseLog[]>([]);
+  const { addXP, incrementStreak, logs, addLog, fetchUserData } = useStore();
 
   useEffect(() => {
-    fetch('/glucose/api')
-      .then(res => res.json())
-      .then(data => setLogs(data))
-      .catch(err => console.error(err));
-  }, []);
+    // If the global store is empty, trigger a full application hydration to ensure latest readings are mapped
+    if (logs.length === 0) {
+      fetchUserData();
+    }
+  }, [logs.length, fetchUserData]);
 
   // New Log State
   const [newValue, setNewValue] = useState('');
@@ -47,25 +46,16 @@ export default function GlucoseScreen() {
       };
 
       try {
-        const res = await fetch('/glucose/api', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newEntry)
-        });
+        await addLog(newEntry);
+        addXP(50); // Gamification reward
+        setShowAddModal(false);
+        // Reset form
+        setNewValue('');
+        setNewInsulin('0');
+        setNewNotes('');
         
-        if (res.ok) {
-          const savedLog = await res.json();
-          setLogs(prev => [savedLog, ...prev]);
-          addXP(50); // Gamification reward
-          setShowAddModal(false);
-          // Reset form
-          setNewValue('');
-          setNewInsulin('0');
-          setNewNotes('');
-          
-          const msg = new SpeechSynthesisUtterance('Log saved successfully. You earned 50 XP!');
-          window.speechSynthesis.speak(msg);
-        }
+        const msg = new SpeechSynthesisUtterance('Log saved successfully. You earned 50 XP!');
+        window.speechSynthesis.speak(msg);
       } catch (err) {
         console.error('Failed to save log', err);
       }
