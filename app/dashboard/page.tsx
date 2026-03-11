@@ -34,36 +34,59 @@ export default function DashboardScreen() {
   // Real-Time Weather State
   const [weatherData, setWeatherData] = React.useState<WeatherData | null>(null);
   const [weatherLoading, setWeatherLoading] = React.useState(true);
+  const [manualCity, setManualCity] = React.useState('');
+  const [showManualInput, setShowManualInput] = React.useState(false);
+
+  const fetchWeather = async (lat: number, lng: number) => {
+    try {
+      setWeatherLoading(true);
+      const res = await fetch(`/api/weather?lat=${lat}&lng=${lng}`);
+      if (res.ok) {
+         setWeatherData(await res.json());
+         setShowManualInput(false);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+
+  const fetchWeatherByCity = async (city: string) => {
+    if (!city.trim()) return;
+    setWeatherLoading(true);
+    try {
+      const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+      if (geoRes.ok) {
+        const geoData = await geoRes.json();
+        if (geoData.results && geoData.results.length > 0) {
+          const { latitude, longitude } = geoData.results[0];
+          await fetchWeather(latitude, longitude);
+          return;
+        }
+      }
+      setWeatherLoading(false);
+    } catch (e) {
+      setWeatherLoading(false);
+    }
+  };
 
   React.useEffect(() => {
-    const fetchWeather = async (lat: number, lng: number) => {
-      try {
-        const res = await fetch(`/api/weather?lat=${lat}&lng=${lng}`);
-        if (res.ok) {
-           setWeatherData(await res.json());
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setWeatherLoading(false);
-      }
-    };
-
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => fetchWeather(position.coords.latitude, position.coords.longitude),
-        () => fetchWeather(40.7128, -74.0060), // Graceful fallback on denial or timeout
+        () => setShowManualInput(true), // Ask user if denied/timed out
         { timeout: 10000 }
       );
     } else {
-      fetchWeather(40.7128, -74.0060); // Default if geolocation isn't supported at all
+      setShowManualInput(true);
     }
   }, []);
 
   // Medical Correlation Engine
   const getWeatherInsight = () => {
     if (weatherLoading) return { title: 'Loading...', desc: 'Analyzing local climate factors...', icon: CloudRain };
-    if (!weatherData?.temperature) return { title: 'No Data', desc: 'Could not fetch medical weather conditions.', icon: CloudRain };
+    if (!weatherData?.temperature) return { title: 'Location Required', desc: 'Please set your location to analyze environmental risks.', icon: CloudRain };
 
     const { temperature, apparentTemperature, humidity, precipitation, weatherCode } = weatherData;
 
@@ -209,16 +232,40 @@ export default function DashboardScreen() {
       
       {/* Weather Effect Card */}
       <Card className="p-5 border border-slate-200 bg-white col-span-1 md:col-span-4 h-full flex flex-col justify-between hover:shadow-md transition-shadow">
-        <div className="flex justify-between items-start mb-4">
-          <WeatherIcon size={20} className={weatherLoading ? "text-slate-300 animate-pulse" : "text-slate-500"} />
-          <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md tracking-wider">
-            {weatherInsight.title}
-          </span>
-        </div>
-        <div>
-           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Environment</p>
-           <p className="text-sm font-medium text-slate-700 leading-snug">{weatherInsight.desc}</p>
-        </div>
+        {showManualInput ? (
+          <div className="flex flex-col h-full justify-center">
+             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Set Location</p>
+             <div className="flex gap-2">
+               <input 
+                 type="text" 
+                 placeholder="Enter city..." 
+                 value={manualCity} 
+                 onChange={e => setManualCity(e.target.value)}
+                 onKeyDown={e => e.key === 'Enter' && fetchWeatherByCity(manualCity)}
+                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm outline-none focus-ring"
+                 autoFocus
+               />
+               <button onClick={() => fetchWeatherByCity(manualCity)} className="bg-teal-primary text-white px-3 py-2 rounded-md text-xs font-bold hover:bg-teal-light transition-colors">Go</button>
+             </div>
+             {weatherLoading && <p className="text-[10px] text-teal-primary font-bold mt-2 uppercase tracking-wide">Searching...</p>}
+          </div>
+        ) : (
+          <>
+            <div className="flex justify-between items-start mb-4">
+              <WeatherIcon size={20} className={weatherLoading ? "text-slate-300 animate-pulse" : "text-slate-500"} />
+              <div className="flex flex-col items-end gap-1">
+                 <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md tracking-wider">
+                   {weatherInsight.title}
+                 </span>
+                 <button onClick={() => setShowManualInput(true)} className="text-[9px] text-teal-600 font-bold uppercase underline opacity-70 hover:opacity-100">Change location</button>
+              </div>
+            </div>
+            <div>
+               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Environment</p>
+               <p className="text-sm font-medium text-slate-700 leading-snug">{weatherInsight.desc}</p>
+            </div>
+          </>
+        )}
       </Card>
 
       {/* Daily Tip */}

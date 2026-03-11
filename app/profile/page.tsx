@@ -36,6 +36,10 @@ export default function ProfileScreen() {
       if (res.ok) {
         // Force the NextAuth session hook to refresh 
         await updateSession();
+        // Force the Zustand global store to reflect the name change instantly
+        useStore.setState(state => ({
+          profile: state.profile ? { ...state.profile, name: userName } : null
+        }));
       }
     } catch(e) {
       console.error(e);
