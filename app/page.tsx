@@ -19,15 +19,15 @@ export default function Splash() {
     if (status === 'loading') return;
 
     const timer = setTimeout(() => {
-      if (session?.user) {
+      if (status === 'authenticated') {
         router.push('/dashboard');
-      } else {
+      } else if (status === 'unauthenticated') {
         router.push('/login');
       }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [session, status, router]);
+  }, [status, router]);
 
   if (!mounted) return null;
 
