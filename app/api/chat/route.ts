@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
+import { auth } from "../../../lib/auth";
 
 export async function POST(req: Request) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { messages } = await req.json();
 
     if (!messages) {
@@ -27,7 +33,7 @@ export async function POST(req: Request) {
         messages: [
           { 
             role: 'system', 
-            content: 'You are RushBuddy, a helpful and empathetic AI diabetes coach. Keep your answers concise, practical, and highly relevant to blood sugar management. Do not give direct medical diagnoses, but provide good nutritional and lifestyle advice.' 
+            content: `You are RushBuddy, a helpful and empathetic AI diabetes coach. You are talking to ${session.user.name || 'a user'}. Keep your answers concise, practical, and highly relevant to blood sugar management. Do not give direct medical diagnoses, but provide good nutritional and lifestyle advice. Always use their real name if greeting them.` 
           },
           ...messages
         ]

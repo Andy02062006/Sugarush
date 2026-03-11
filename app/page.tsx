@@ -3,20 +3,23 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '../store';
+import { useSession } from 'next-auth/react';
 import { Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Splash() {
   const router = useRouter();
-  const isLoggedIn = useStore(s => s.isLoggedIn);
+  const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     
-    // Artificial delay to show splash screen
+    // Artificial delay to show splash screen, but wait for session status to resolve
+    if (status === 'loading') return;
+
     const timer = setTimeout(() => {
-      if (isLoggedIn) {
+      if (session?.user) {
         router.push('/dashboard');
       } else {
         router.push('/login');
@@ -24,7 +27,7 @@ export default function Splash() {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [isLoggedIn, router]);
+  }, [session, status, router]);
 
   if (!mounted) return null;
 

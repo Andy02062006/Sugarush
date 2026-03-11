@@ -236,6 +236,7 @@ export default function FoodScreen() {
   const [glucoseBefore, setGlucoseBefore] = useState('');
   const [glucoseAfter, setGlucoseAfter] = useState('');
   const [saved, setSaved] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Compute real-time warnings as food items are added
   const warnings = useMemo(
@@ -243,12 +244,37 @@ export default function FoodScreen() {
     [foodList, riskProfile]
   );
 
-  const handleAddFood = () => {
+  const handleAddFood = async () => {
     const name = foodInput.trim();
     if (!name) return;
-    setFoodList(prev => [...prev, { name, portionSize: portionInput.trim() || undefined }]);
-    setFoodInput('');
-    setPortionInput('');
+
+    setIsSearching(true);
+    try {
+      // Hit our new Edamam securely proxy route
+      const query = portionInput.trim() ? `${portionInput.trim()} ${name}` : name;
+      const res = await fetch(`/food/api/search?q=${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const macroData = await res.json();
+        setFoodList(prev => [...prev, {
+          name: macroData.name,
+          portionSize: portionInput.trim() || undefined,
+          calories: macroData.calories,
+          estimatedCarbs: macroData.carbs,
+          protein: macroData.protein,
+          fat: macroData.fat
+        }]);
+      } else {
+        // Fallback gracefully to basic mapping without failing the flow
+        setFoodList(prev => [...prev, { name, portionSize: portionInput.trim() || undefined }]);
+      }
+    } catch (e) {
+      console.error(e);
+      setFoodList(prev => [...prev, { name, portionSize: portionInput.trim() || undefined }]);
+    } finally {
+      setFoodInput('');
+      setPortionInput('');
+      setIsSearching(false);
+    }
   };
 
   const handleRemoveFood = (idx: number) => {
@@ -422,10 +448,11 @@ export default function FoodScreen() {
                   />
                   <button
                     onClick={handleAddFood}
+                    disabled={isSearching}
                     aria-label="Add food item"
-                    className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0"
+                    className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0 disabled:opacity-50"
                   >
-                    <Plus size={18} />
+                    {isSearching ? <span className="animate-pulse">...</span> : <Plus size={18} />}
                   </button>
                 </div>
 
@@ -446,6 +473,11 @@ export default function FoodScreen() {
                             <span className="text-[14px] font-semibold text-slate-800">{food.name}</span>
                             {food.portionSize && (
                               <span className="text-[11px] text-slate-400 font-medium">{food.portionSize}</span>
+                            )}
+                            {food.estimatedCarbs !== undefined && (
+                              <span className="text-[11px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold uppercase">
+                                {Math.round(food.estimatedCarbs)}g Carbs
+                              </span>
                             )}
                             {risk && <RiskBadge level={risk.riskLevel} />}
                           </div>

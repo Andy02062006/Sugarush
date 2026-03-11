@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth Next.js models
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  // Real App specific Relations
+  profile       Profile?
+  glucoseLogs   GlucoseLog[]
+  mealLogs      MealLog[]
+  rewards       UserReward[]
+  badges        UserBadge[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Custom App Models
+model Profile {
+  id             String @id @default(cuid())
+  userId         String @unique
+  diabetesType   String @default("Type 2") // Type 1, Type 2, Gestational, Prediabetes
+  age            Int    @default(30)
+  targetRangeMin Int    @default(70)
+  targetRangeMax Int    @default(140)
+  xp             Int    @default(0)
+  streak         Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GlucoseLog {
+  id        String   @id @default(cuid())
+  userId    String
+  value     Int
+  timestamp DateTime @default(now())
+  mealType  String   // Fasting, Before Lunch, After Dinner
+  insulin   Float?
+  notes     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MealLog {
+  id                String   @id @default(cuid())
+  userId            String
+  timestamp         DateTime @default(now())
+  notes             String?
+  glucoseBeforeMeal Int?
+  glucoseAfterMeal  Int?
+  spikeDetected     Boolean  @default(false)
+  spikeAmount       Int?
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foods FoodItem[]
+}
+
+model FoodItem {
+  id             String  @id @default(cuid())
+  mealLogId      String
+  name           String
+  portionSize    String?
+  estimatedCarbs Float?
+  calories       Float?
+  protein        Float?
+  fat            Float?
+
+  mealLog MealLog @relation(fields: [mealLogId], references: [id], onDelete: Cascade)
+}
+
+model UserReward {
+  id         String   @id @default(cuid())
+  userId     String
+  rewardId   String   // Corresponds to mock ID rew1, rew2 etc
+  redeemedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, rewardId])
+}
+
+model UserBadge {
+  id         String   @id @default(cuid())
+  userId     String
+  badgeId    String   // Corresponds to mock ID b1, b2 etc
+  unlockedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, badgeId])
+}

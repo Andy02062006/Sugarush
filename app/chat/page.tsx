@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
+import { useSession } from 'next-auth/react';
 import { Send, Bot, User, Sparkles, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -19,13 +20,22 @@ const QUICK_PROMPTS = [
 ];
 
 export default function ChatScreen() {
-  const { currentReading, profile } = useStore();
-  const [messages, setMessages] = useState<Message[]>([
-    { id: '1', sender: 'ai', text: `Hi ${profile?.name || 'there'}! I'm RushBuddy, your AI diabetes coach. Your last reading was ${currentReading} mg/dL. How can I help you today?` }
-  ]);
+  const { currentReading } = useStore();
+  const { data: session } = useSession();
+  
+  const initialMessageText = `Hi ${session?.user?.name || 'there'}! I'm RushBuddy, your AI diabetes coach. Your last reading was ${currentReading} mg/dL. How can I help you today?`;
+  
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Only set initial message once session is loaded to prevent hydration mismatches
+    if (messages.length === 0) {
+      setMessages([{ id: '1', sender: 'ai', text: initialMessageText }]);
+    }
+  }, [session?.user?.name]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

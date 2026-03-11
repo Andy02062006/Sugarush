@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../../components/ui/Card';
 import { Search, Flame, Clock, Droplet, ChefHat, Volume2, Languages, X, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,6 +14,13 @@ export default function RecipesScreen() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [pantryOpen, setPantryOpen] = useState(false);
   const [pantryItems, setPantryItems] = useState('');
+
+  // Cleanup speech synthesis on unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
 
   // Filtering Logic
   const filteredRecipes = MOCK_RECIPES.filter(r => {

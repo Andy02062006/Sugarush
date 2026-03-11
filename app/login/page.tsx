@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { useStore } from '../../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GradientButton } from '../../components/ui/GradientButton';
@@ -10,8 +11,10 @@ import { UserProfile } from '../../lib/mocks';
 
 export default function LoginScreen() {
   const [step, setStep] = useState<0 | 1 | 2>(0);
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   
   // Profile form state
   const [name, setName] = useState('');
@@ -30,21 +33,62 @@ export default function LoginScreen() {
     }
   }, [step]);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
+    setErrorMsg('');
+    if (!email || !password) return;
+
+    if (mode === 'signup') {
+      // Proceed to step 2 to collect profile details
       setStep(2);
+    } else {
+      // Login mode - try to authenticate immediately
+      const res = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (res?.error) {
+        setErrorMsg('Invalid email or password');
+      } else {
+        const msg = new SpeechSynthesisUtterance('Welcome back to Sugarush.');
+        window.speechSynthesis.speak(msg);
+        router.push('/dashboard');
+      }
     }
   };
 
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUser({
-      name: name || 'User',
-      diabetesType,
-      age: parseInt(age) || 35,
-      targetRangeMin: parseInt(minTarget) || 70,
-      targetRangeMax: parseInt(maxTarget) || 140,
+    setErrorMsg('');
+    
+    // 1. Create the user in the database
+    const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email,
+            password,
+            name: name || 'User',
+            diabetesType,
+            age,
+            minTarget,
+            maxTarget
+        })
+    });
+
+    if (!res.ok) {
+        const errorData = await res.json();
+        setErrorMsg(errorData.error || 'Registration failed');
+        return;
+    }
+
+    // 2. Automatically log them in now that the account is built
+    await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
     });
     
     const msg = new SpeechSynthesisUtterance(`Welcome aboard, ${name || 'User'}!`);
@@ -135,9 +179,18 @@ export default function LoginScreen() {
                 ← Back
               </button>
               
-              <h2 className="text-2xl font-heading font-bold text-text-primary mb-8">Sign In</h2>
+              <h2 className="text-2xl font-heading font-bold text-text-primary mb-2">
+                 {mode === 'login' ? 'Sign In' : 'Create Account'}
+              </h2>
               
-              <form onSubmit={handleLoginSubmit} className="space-y-5 flex-1">
+              <div className="flex bg-slate-50 p-1 rounded-[12px] border border-slate-200 mb-6">
+                 <button type="button" onClick={() => setMode('login')} className={`flex-1 py-2 text-sm font-bold rounded-[8px] transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-900'} `}>Log In</button>
+                 <button type="button" onClick={() => setMode('signup')} className={`flex-1 py-2 text-sm font-bold rounded-[8px] transition-all ${mode === 'signup' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-900'} `}>Sign Up</button>
+              </div>
+
+              {errorMsg && <p className="text-sm text-red-500 font-semibold mb-4 text-center">{errorMsg}</p>}
+              
+              <form onSubmit={handleAuthSubmit} className="space-y-5 flex-1">
                 <div>
                   <label className="block text-sm font-semibold text-text-secondary mb-1.5 focus-within:text-teal-primary transition-colors">Email</label>
                   <div className="relative">
@@ -188,6 +241,8 @@ export default function LoginScreen() {
             >
               <h2 className="text-xl font-heading font-bold text-text-primary mb-1">Last step!</h2>
               <p className="text-sm text-text-secondary mb-6">Let's personalize your experience.</p>
+
+              {errorMsg && <p className="text-sm text-red-500 font-semibold mb-4 text-center">{errorMsg}</p>}
               
               <form onSubmit={handleProfileSubmit} className="space-y-5">
                 <div>

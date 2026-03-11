@@ -5,6 +5,7 @@ import { LayoutDashboard, ScrollText, AlertTriangle, Utensils, MessageCircle, Ph
 import { useStore } from '../../store';
 import { cn } from '../../lib/utils';
 import { Avatar } from '../ui/Avatar';
+import { useSession } from 'next-auth/react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -18,13 +19,15 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
   const logout = useStore(s => s.logout);
+  const { data: session } = useSession();
+  const avatarName = session?.user?.name || 'U';
 
   return (
     <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-border hidden md:flex flex-col z-40">
       <div className="p-6 flex items-center gap-3">
-        <div className="animate-float">
-          <Avatar fallback="S" size="sm" />
-        </div>
+        <Link href="/profile" className="animate-float cursor-pointer transition-transform hover:scale-105">
+          <Avatar fallback={avatarName} size="sm" />
+        </Link>
         <span className="font-heading font-black text-xl text-text-primary tracking-tight">Sugarush.</span>
       </div>
 

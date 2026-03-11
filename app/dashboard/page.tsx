@@ -2,24 +2,104 @@
 
 import React from 'react';
 import { useStore } from '../../store';
+import { useSession } from 'next-auth/react';
 import { Avatar } from '../../components/ui/Avatar';
 import { XPBar } from '../../components/ui/XPBar';
 import { StatusPill } from '../../components/ui/StatusPill';
 import { Card } from '../../components/ui/Card';
 import { GradientButton } from '../../components/ui/GradientButton';
-import { ArrowRight, Plus, Droplet, Activity, Flame, Calendar, CloudRain, Wind, Lightbulb, Trophy, Utensils, Bot, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Plus, Droplet, Activity, Flame, Calendar, CloudRain, Sun, Snowflake, Wind, Lightbulb, Trophy, Utensils, Bot, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { PreemptiveNudge } from '../../components/widgets/PreemptiveNudge';
 
+interface WeatherData {
+  temperature?: number;
+  apparentTemperature?: number;
+  humidity?: number;
+  precipitation?: number;
+  weatherCode?: number;
+}
+
 export default function DashboardScreen() {
-  const { profile, currentReading, logs, xp, streak, badges } = useStore();
-  const userName = profile?.name || 'User';
+  const { currentReading, logs, xp, streak, badges } = useStore();
+  const { data: session } = useSession();
+  const userName = session?.user?.name || 'User';
   
   // Calculate stats
   const todayLogs = logs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString());
   const avgGlucose = todayLogs.length > 0 
     ? Math.round(todayLogs.reduce((acc, l) => acc + l.value, 0) / todayLogs.length) 
     : currentReading;
+
+  // Real-Time Weather State
+  const [weatherData, setWeatherData] = React.useState<WeatherData | null>(null);
+  const [weatherLoading, setWeatherLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const res = await fetch(`/api/weather?lat=${position.coords.latitude}&lng=${position.coords.longitude}`);
+            if (res.ok) {
+               setWeatherData(await res.json());
+            }
+          } catch (error) {
+            console.error(error);
+          } finally {
+            setWeatherLoading(false);
+          }
+        },
+        () => setWeatherLoading(false),
+        { timeout: 10000 }
+      );
+    } else {
+      setWeatherLoading(false);
+    }
+  }, []);
+
+  // Medical Correlation Engine
+  const getWeatherInsight = () => {
+    if (weatherLoading) return { title: 'Loading...', desc: 'Analyzing local climate factors...', icon: CloudRain };
+    if (!weatherData?.temperature) return { title: 'No Data', desc: 'Could not fetch medical weather conditions.', icon: CloudRain };
+
+    const { temperature, apparentTemperature, humidity, precipitation, weatherCode } = weatherData;
+
+    // High Heat
+    if (temperature > 30 || (apparentTemperature && apparentTemperature > 32)) {
+       return {
+         title: `${Math.round(temperature)}°C`,
+         desc: 'High Heat Alert! Insulin absorbs faster in heat. Stay hydrated to prevent blood glucose concentration.',
+         icon: Sun
+       };
+    }
+    // Extreme Cold
+    if (temperature < 0) {
+      return {
+        title: `${Math.round(temperature)}°C`,
+        desc: 'Freezing temps constrict blood vessels, slowing insulin absorption. Shivering may also trigger unexpected lows.',
+        icon: Snowflake
+      }
+    }
+    // Storms / Rain
+    if (precipitation && precipitation > 0) {
+      return {
+        title: `${Math.round(temperature)}°C`,
+        desc: 'Rainy conditions. If skipping outdoor exercise, watch for post-meal spikes tonight.',
+        icon: CloudRain
+      }
+    }
+
+    // Default neutral
+    return {
+      title: `${Math.round(temperature)}°C`,
+      desc: 'Optimal environment. Ensure you maintain standard testing intervals today.',
+      icon: Wind
+    };
+  };
+
+  const weatherInsight = getWeatherInsight();
+  const WeatherIcon = weatherInsight.icon;
 
   // AI Tip
   const tip = "Walking for 10 minutes after a meal can significantly reduce your blood sugar spike.";
@@ -33,9 +113,9 @@ export default function DashboardScreen() {
           <h1 className="text-2xl font-heading font-bold text-text-primary">Hi, {userName}</h1>
           <p className="text-text-secondary font-medium mt-1">Ready to conquer your day?</p>
         </div>
-        <div className="animate-float">
+        <Link href="/profile" className="animate-float cursor-pointer hover:scale-105 transition-transform">
           <Avatar fallback={userName} size="lg" />
-        </div>
+        </Link>
       </header>
       
       <XPBar xp={xp} />
@@ -128,12 +208,14 @@ export default function DashboardScreen() {
       {/* Weather Effect Card */}
       <Card className="p-5 border border-slate-200 bg-white col-span-1 md:col-span-4 h-full flex flex-col justify-between hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start mb-4">
-          <CloudRain size={20} className="text-slate-400" />
-          <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md tracking-wider">24°C</span>
+          <WeatherIcon size={20} className={weatherLoading ? "text-slate-300 animate-pulse" : "text-slate-500"} />
+          <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md tracking-wider">
+            {weatherInsight.title}
+          </span>
         </div>
         <div>
            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Environment</p>
-           <p className="text-sm font-medium text-slate-700 leading-snug">Rain expected. Risk of low mobility today.</p>
+           <p className="text-sm font-medium text-slate-700 leading-snug">{weatherInsight.desc}</p>
         </div>
       </Card>
 

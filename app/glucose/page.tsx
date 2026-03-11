@@ -9,6 +9,8 @@ import { Plus, Download, ChevronRight, FileText, Droplet, Activity } from 'lucid
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { MOCK_WEEKLY_DATA, GlucoseLog } from '../../lib/mocks';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function GlucoseScreen() {
   const [activeTab, setActiveTab] = useState<'history' | 'weekly'>('history');
@@ -84,6 +86,29 @@ export default function GlucoseScreen() {
     return '#22C55E';
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Glucose Activity History', 14, 15);
+    autoTable(doc, {
+      startY: 20,
+      head: [['Date', 'Time', 'Glucose (mg/dL)', 'Meal Type', 'Insulin', 'Notes']],
+      body: logs.map(l => {
+        const d = new Date(l.timestamp);
+        return [
+          d.toLocaleDateString(),
+          d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          l.value.toString(),
+          l.mealType,
+          l.insulin ? `${l.insulin}U` : '-',
+          l.notes || '-'
+        ];
+      }),
+      theme: 'grid',
+      headStyles: { fillColor: [15, 23, 42] }, // slate-900
+    });
+    doc.save('glucose_history.pdf');
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-6">
       <header className="mb-8 relative mt-2">
@@ -141,7 +166,7 @@ export default function GlucoseScreen() {
             <div className="space-y-4">
               <div className="flex justify-between items-center px-1 mb-2">
                 <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Recent Logs</span>
-                <button className="text-[13px] font-semibold text-slate-500 flex items-center gap-1.5 hover:text-slate-900 focus-ring rounded-md transition-colors">
+                <button onClick={handleExportPDF} className="text-[13px] font-semibold text-slate-500 flex items-center gap-1.5 hover:text-slate-900 focus-ring rounded-md transition-colors">
                   <Download size={14} /> Export PDF
                 </button>
               </div>

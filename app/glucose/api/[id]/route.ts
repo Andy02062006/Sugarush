@@ -3,10 +3,11 @@ import { db } from '../db';
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const deleted = db.deleteLog(params.id);
+    const resolvedParams = await params;
+    const deleted = db.deleteLog(resolvedParams.id);
     
     if (!deleted) {
       return NextResponse.json({ error: 'Log not found' }, { status: 404 });
