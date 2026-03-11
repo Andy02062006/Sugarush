@@ -11,7 +11,7 @@ interface AppState {
   fetchUserData: () => Promise<void>;
   
   // GLUCOSE slice
-  currentReading: number;
+  currentReading: number | null;
   logs: GlucoseLog[];
   addLog: (log: Omit<GlucoseLog, 'id'>) => void;
   deleteLog: (id: string) => void;
@@ -52,7 +52,7 @@ export const useStore = create<AppState>()(
 
           if (gRes.ok) {
             const logs = await gRes.json();
-            set({ logs, currentReading: logs[0]?.value || 0 });
+            set({ logs, currentReading: logs[0]?.value ?? null });
           }
           if (mRes.ok) {
             const mealLogs = await mRes.json();
@@ -85,7 +85,7 @@ export const useStore = create<AppState>()(
       },
 
       // GLUCOSE slice
-      currentReading: MOCK_LOGS[0]?.value || 0,
+      currentReading: MOCK_LOGS.length > 0 ? MOCK_LOGS[0].value : null,
       logs: MOCK_LOGS,
       addLog: async (logData) => {
         const tempId = `temp-${Date.now()}`;

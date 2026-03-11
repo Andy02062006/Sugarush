@@ -29,7 +29,7 @@ export default function DashboardScreen() {
   const todayLogs = logs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString());
   const avgGlucose = todayLogs.length > 0 
     ? Math.round(todayLogs.reduce((acc, l) => acc + l.value, 0) / todayLogs.length) 
-    : currentReading;
+    : (currentReading || 0);
 
   // Real-Time Weather State
   const [weatherData, setWeatherData] = React.useState<WeatherData | null>(null);
@@ -162,11 +162,17 @@ export default function DashboardScreen() {
                 Latest Reading
               </p>
               <div className="flex items-baseline gap-2">
-                <span className="text-7xl md:text-8xl font-heading font-black leading-none tracking-tighter text-white">{currentReading}</span>
-                <span className="text-lg text-slate-400 font-medium">mg/dL</span>
+                {currentReading ? (
+                  <>
+                    <span className="text-7xl md:text-8xl font-heading font-black leading-none tracking-tighter text-white">{currentReading}</span>
+                    <span className="text-lg text-slate-400 font-medium">mg/dL</span>
+                  </>
+                ) : (
+                  <span className="text-3xl md:text-4xl font-heading font-bold leading-tight text-white/80">No readings recorded yet</span>
+                )}
               </div>
             </div>
-            <StatusPill value={currentReading} />
+            {currentReading !== null && <StatusPill value={currentReading} />}
           </div>
           
           <div className="mt-8 pt-6 border-t border-white/10 flex justify-between items-center relative z-10">

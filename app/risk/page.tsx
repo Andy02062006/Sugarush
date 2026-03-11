@@ -15,18 +15,24 @@ export default function RiskScreen() {
   let status = 'Low Risk';
   let color = '#22C55E';
   
-  if (currentReading > 180 || currentReading < 70) {
-    score = 68;
-    status = 'High Risk';
-    color = '#EF4444';
-  } else if (currentReading > 140) {
-    score = 35;
-    status = 'Moderate';
-    color = '#E07A3A';
+  if (currentReading !== null) {
+    if (currentReading > 180 || currentReading < 70) {
+      score = 68;
+      status = 'High Risk';
+      color = '#EF4444';
+    } else if (currentReading > 140) {
+      score = 35;
+      status = 'Moderate';
+      color = '#E07A3A';
+    }
+  } else {
+    status = 'Unknown';
+    color = '#94A3B8';
+    score = 0;
   }
 
   const factors = [
-    { name: 'Recent Glucose', impact: 45, value: currentReading > 150 ? 'High' : 'Normal', type: 'warning' },
+    { name: 'Recent Glucose', impact: 45, value: (currentReading !== null && currentReading > 150) ? 'High' : (currentReading === null ? 'Unknown' : 'Normal'), type: currentReading === null ? 'neutral' : 'warning' },
     { name: 'Weather Effect', impact: 20, value: 'Rain (Low Activity)', type: 'danger' },
     { name: 'Meal Timing', impact: 15, value: 'Good', type: 'success' },
     { name: 'Hydration', impact: 10, value: 'Unknown', type: 'neutral' },

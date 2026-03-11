@@ -19,6 +19,7 @@ export default function EmergencyScreen() {
   }, []);
 
   const getGlucoseStatus = () => {
+    if (currentReading === null) return { alert: 'UNKNOWN GLUCOSE', color: 'text-slate-700', bg: 'bg-slate-100', advise: 'No reading available.' };
     if (currentReading < 70) return { alert: 'SEVERE HYPOGLYCEMIA', color: 'text-red-700', bg: 'bg-red-50', advise: 'Needs fast-acting carbs immediately (15g).' };
     if (currentReading > 250) return { alert: 'SEVERE HYPERGLYCEMIA', color: 'text-orange-700', bg: 'bg-orange-50', advise: 'Monitor for DKA. Seek medical attention if vomiting.' };
     return { alert: 'ABNORMAL GLUCOSE', color: 'text-amber-700', bg: 'bg-amber-50', advise: 'Monitor closely.' };
@@ -114,7 +115,7 @@ export default function EmergencyScreen() {
         </div>
       </div>
 
-      {(currentReading < 70 || currentReading > 250) && (
+      {currentReading !== null && (currentReading < 70 || currentReading > 250) && (
         <motion.div 
            initial={{ opacity: 0, y: 10 }}
            animate={{ opacity: 1, y: 0 }}
