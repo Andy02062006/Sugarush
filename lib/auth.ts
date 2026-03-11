@@ -68,15 +68,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
       }
+      
+      // If the profile screen calls updateSession(), fetch latest name from DB
+      if (trigger === "update" && token.id) {
+        const freshUser = await prisma.user.findUnique({ where: { id: token.id as string } });
+        if (freshUser) {
+           token.name = freshUser.name;
+        }
+      }
+      
       return token;
     },
     async session({ session, token }) {
       if (token?.id) {
         session.user.id = token.id as string;
+      }
+      if (token?.name) {
+        session.user.name = token.name as string;
       }
       return session;
     }
