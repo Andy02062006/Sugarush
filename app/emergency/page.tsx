@@ -6,8 +6,11 @@ import { Card } from '../../components/ui/Card';
 import { Phone, AlertTriangle, User, Activity, Clock, HeartPulse, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import { useSession } from 'next-auth/react';
+
 export default function EmergencyScreen() {
   const { profile, currentReading } = useStore();
+  const { data: session } = useSession();
 
   useEffect(() => {
     // Auto-read on load so visually impaired/shaky users know they're on the right screen
@@ -76,7 +79,7 @@ export default function EmergencyScreen() {
              <div>
                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Patient Name</p>
                <p className="text-xl md:text-2xl font-heading font-black text-slate-900 leading-none mb-4 break-words tracking-tight">
-                 {profile?.name || 'JOHN DOE'}
+                 {session?.user?.name || profile?.name || 'JOHN DOE'}
                </p>
                
                <div className="grid grid-cols-2 gap-x-2 gap-y-4">

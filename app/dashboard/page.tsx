@@ -36,25 +36,27 @@ export default function DashboardScreen() {
   const [weatherLoading, setWeatherLoading] = React.useState(true);
 
   React.useEffect(() => {
+    const fetchWeather = async (lat: number, lng: number) => {
+      try {
+        const res = await fetch(`/api/weather?lat=${lat}&lng=${lng}`);
+        if (res.ok) {
+           setWeatherData(await res.json());
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const res = await fetch(`/api/weather?lat=${position.coords.latitude}&lng=${position.coords.longitude}`);
-            if (res.ok) {
-               setWeatherData(await res.json());
-            }
-          } catch (error) {
-            console.error(error);
-          } finally {
-            setWeatherLoading(false);
-          }
-        },
-        () => setWeatherLoading(false),
+        (position) => fetchWeather(position.coords.latitude, position.coords.longitude),
+        () => fetchWeather(40.7128, -74.0060), // Graceful fallback on denial or timeout
         { timeout: 10000 }
       );
     } else {
-      setWeatherLoading(false);
+      fetchWeather(40.7128, -74.0060); // Default if geolocation isn't supported at all
     }
   }, []);
 
